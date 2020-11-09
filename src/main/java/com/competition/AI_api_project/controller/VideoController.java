@@ -22,13 +22,13 @@ public class VideoController {
     SceneSplitStatusCheckService sceneSplitStatusCheckService;
 
     static private String returnedFileID = "";
-    static private String accessKey = "[My key]";
+    static private String accessKey = "-";
     static private String type = "mp4";
-    static private String filePath = "C:\\AI_api_competition\\AI_api_competition\\src" +
+    static private String filePath = "C:\\AI_api_project\\AI_api_project\\src" +
             "\\main\\resources\\static\\";
 
     @PostMapping(value = "/upload", produces = "application/json; charset=utf8")
-    public String upload(@RequestParam("uploadfile") MultipartFile f) {
+    public void upload(@RequestParam("uploadfile") MultipartFile f) {
 
         // file name 지정
         SimpleDateFormat dateFormat = new SimpleDateFormat ( "yyyy-MM-dd_HH-mm-ss_");
@@ -48,15 +48,17 @@ public class VideoController {
         }
 
         String fileID = sceneSplitService.sceneSplit(accessKey, type, filePath+fileName);
-        System.out.println("FILE ID IN CONTROLLER : " + fileID);
-        //sceneSplitStatusCheckAPI.sceneSplitStatusCheck(fileID, accessKey);
-        //analysis(fileID);
         returnedFileID = fileID;
-        return "index";
+
+        System.out.println("FILE ID IN CONTROLLER : " + returnedFileID);
+
+        /* 나눠서 사용 */
+        // sceneSplitStatusCheckService.sceneSplitStatusCheck(returnedFileID, accessKey);
+        return ;
     }
 
-    @PostMapping(value = "/analysis", produces = "application/json; charset=utf8")
-    public String analysis() {
+    @PostMapping(value = "/sceneSplit", produces = "application/json; charset=utf8")
+    public String sceneSplit() {
         String fileID = returnedFileID;
         sceneSplitStatusCheckService.sceneSplitStatusCheck(fileID, accessKey);
         return "index";
