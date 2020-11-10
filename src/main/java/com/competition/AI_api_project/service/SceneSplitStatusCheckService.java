@@ -1,5 +1,7 @@
 package com.competition.AI_api_project.service;
 
+import net.minidev.json.JSONObject;
+import net.minidev.json.JSONValue;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
@@ -23,7 +25,7 @@ import com.google.gson.Gson;
 public class SceneSplitStatusCheckService {
     static private String openApiURL = "http://aiopen.etri.re.kr:8000/VideoParse/status";
 
-    static public void sceneSplitStatusCheck(String fileID, String accessKey) {
+    static public String sceneSplitStatusCheck(String fileID, String accessKey) {
         Gson gson = new Gson();
 
         Map<String, Object> request = new HashMap<>();
@@ -73,5 +75,9 @@ public class SceneSplitStatusCheckService {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        System.out.println(responBody);
+        Object obj = JSONValue.parse(responBody);
+        Object res = ((JSONObject) obj).get("result");
+        return res.toString();
     }
 }

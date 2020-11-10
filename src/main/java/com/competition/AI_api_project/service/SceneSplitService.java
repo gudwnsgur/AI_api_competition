@@ -42,7 +42,7 @@ public class SceneSplitService {
 
         builder.addPart("uploadfile", fileBody);
         builder.addTextBody("json", gson.toJson(request));
-        System.out.println("1 : " + request);
+        System.out.println("[장면분할 API Request] : " + request);
         Integer responseCode = null;
         String responBody = null;
 
