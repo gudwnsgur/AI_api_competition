@@ -24,7 +24,9 @@ public class SceneSplitStatusCheckAPI {
 
     static public void sceneSplitStatusCheck(String fileID, String accessKey) {
         Gson gson = new Gson();
-
+        //test용 api key
+        accessKey = "25601cd9-c413-4522-b3fb-e35de1ae040d";
+        //
         Map<String, Object> request = new HashMap<>();
         Map<String, Object> file_id = new HashMap<>();
         file_id.put("file_id", fileID);

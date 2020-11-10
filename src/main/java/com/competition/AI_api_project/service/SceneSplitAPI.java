@@ -43,7 +43,6 @@ public class SceneSplitAPI {
         System.out.println("1 : " + request);
         Integer responseCode = null;
         String responBody = null;
-
         String returnFileId = "";
         try {
             CloseableHttpClient http = HttpClients.createDefault();
