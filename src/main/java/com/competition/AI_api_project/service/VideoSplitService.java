@@ -1,6 +1,7 @@
 package com.competition.AI_api_project.service;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 import net.bramp.ffmpeg.FFmpeg;
 import net.bramp.ffmpeg.FFmpegExecutor;
@@ -16,7 +17,7 @@ public class VideoSplitService {
         FFmpeg ffmpeg = new FFmpeg("C:\\ffmpeg-3.4.1-win64-static\\ffmpeg-3.4.1-win64-static\\bin\\ffmpeg");
         FFprobe ffprobe = new FFprobe("C:\\ffmpeg-3.4.1-win64-static\\ffmpeg-3.4.1-win64-static\\bin\\ffprobe");
 
-        double  splitMinute = 10.0;
+        double  splitMinute = 300.0;
         int cnt = 0;
 
         if (videoLen == 0.0) {
@@ -34,5 +35,26 @@ public class VideoSplitService {
             executor.createJob(builder).run();
         }
         return cnt;
+    }
+    public void splitByArray(ArrayList<Double> list, String path, String fileName) throws IOException {
+        FFmpeg ffmpeg = new FFmpeg("C:\\ffmpeg-3.4.1-win64-static\\ffmpeg-3.4.1-win64-static\\bin\\ffmpeg");
+        FFprobe ffprobe = new FFprobe("C:\\ffmpeg-3.4.1-win64-static\\ffmpeg-3.4.1-win64-static\\bin\\ffprobe");
+
+        int cnt = 0;
+        double tmp = 0;
+        for (int i =0; i < list.size() - 1; i++) {
+            double gap = list.get(i + 1) - list.get(i);
+            FFmpegBuilder builder = new FFmpegBuilder()
+                    .overrideOutputFiles(true)
+                    .addInput(path + "\\" + fileName)
+                    .addExtraArgs("-ss", tmp + "")
+                    .addExtraArgs("-t", gap + "")
+                    .addOutput(path + "/mergedVideo/" + "mergedVideo_" + cnt++ + ".mp4")
+                    .done();
+            FFmpegExecutor executor = new FFmpegExecutor(ffmpeg, ffprobe);
+            executor.createJob(builder).run();
+            tmp += gap;
+        }
+        return;
     }
 }

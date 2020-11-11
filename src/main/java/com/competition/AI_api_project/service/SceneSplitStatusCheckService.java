@@ -1,7 +1,12 @@
 package com.competition.AI_api_project.service;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import net.minidev.json.JSONValue;
+import net.minidev.json.parser.JSONParser;
+import net.minidev.json.parser.ParseException;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
@@ -9,6 +14,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,7 +31,7 @@ import com.google.gson.Gson;
 public class SceneSplitStatusCheckService {
     static private String openApiURL = "http://aiopen.etri.re.kr:8000/VideoParse/status";
 
-    static public String sceneSplitStatusCheck(String fileID, String accessKey) {
+    static public ArrayList<Double> sceneSplitStatusCheck(String fileID, String accessKey) throws ParseException {
         Gson gson = new Gson();
 
         Map<String, Object> request = new HashMap<>();
@@ -33,9 +39,7 @@ public class SceneSplitStatusCheckService {
         file_id.put("file_id", fileID);
         request.put("request_id", "reserved field");
         request.put("access_key", accessKey);
-//        System.out.println("[return File ID] : " + fileID);
         request.put("argument", file_id);
-        System.out.println("2 : " + request);
         MultipartEntityBuilder builder = MultipartEntityBuilder.create();
         builder.addTextBody("json", gson.toJson(request));
 
@@ -51,8 +55,6 @@ public class SceneSplitStatusCheckService {
 
             try {
                 status = response.getStatusLine();
-                System.out.println("STATUS : " + status);
-                System.out.println("SECOND_REQUEST : " + request);
 
                 HttpEntity res = response.getEntity();
                 BufferedReader br = new BufferedReader(new InputStreamReader(res.getContent(), Charset.forName("UTF-8")));
@@ -60,13 +62,12 @@ public class SceneSplitStatusCheckService {
                 while ((buffer = br.readLine()) != null) {
                     result.append(buffer).append("\r\n");
                 }
-                System.out.println(result);
                 responseCode = status.getStatusCode();
                 responBody = result.toString();
 
-                System.out.println("장면분할 상태체크 API");
-                System.out.println("[responseCode] " + responseCode);
-                System.out.println("[responBody]" + responBody);
+                System.out.println("[장면분할 상태체크 API]");
+                System.out.println("[responseCode]   " + responseCode);
+                System.out.println("[responBody]    " + responBody);
             } finally {
                 response.close();
             }
@@ -75,9 +76,21 @@ public class SceneSplitStatusCheckService {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println(responBody);
-        Object obj = JSONValue.parse(responBody);
-        Object res = ((JSONObject) obj).get("result");
-        return res.toString();
+        ArrayList<Double> timeTable = new ArrayList<Double>();
+
+        JSONParser jP = new JSONParser();
+        JSONObject obj = ((JSONObject)jP.parse(responBody));
+        JSONObject return_obj = (JSONObject)obj.get("return_object");
+        JSONArray resArr = (JSONArray)return_obj.get("result");
+
+        JSONObject res = (JSONObject)resArr.get(0);
+        JSONArray time = (JSONArray)res.get("time");
+
+        for(int i=0; i<time.size(); i++) {
+            Object tmp = time.get(i);
+            double d = Double.parseDouble(tmp.toString());
+            timeTable.add(d);
+        }
+        return timeTable;
     }
 }

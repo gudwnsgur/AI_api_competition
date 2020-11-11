@@ -21,7 +21,6 @@ public class UploadService {
         Calendar time = Calendar.getInstance();
         String fileName = dateFormat.format(time.getTime());
         fileName += (Integer.toString((int) (Math.random() * 1000)));
-        System.out.println(fileName);
         return fileName;
     }
     public void setNewDir(String path, String file, MultipartFile f) {
@@ -53,17 +52,17 @@ public class UploadService {
         return;
     }
 
-    public double getFileSize(String path, String file) throws IOException {
+    public int getFileSize(String path, String file) throws IOException {
         FFmpeg ffmpeg = new FFmpeg("C:\\ffmpeg-3.4.1-win64-static\\ffmpeg-3.4.1-win64-static\\bin\\ffmpeg");
         FFprobe ffprobe = new FFprobe("C:\\ffmpeg-3.4.1-win64-static\\ffmpeg-3.4.1-win64-static\\bin\\ffprobe");
 
         try {
             FFmpegProbeResult probeResult = ffprobe.probe(path + "\\" + file);
             FFmpegFormat format = probeResult.getFormat();
-            return format.duration;
+            return (int)format.duration;
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return 0.0;
+        return 0;
     }
 }

@@ -42,7 +42,6 @@ public class SceneSplitService {
 
         builder.addPart("uploadfile", fileBody);
         builder.addTextBody("json", gson.toJson(request));
-        System.out.println("[장면분할 API Request] : " + request);
         Integer responseCode = null;
         String responBody = null;
 
@@ -64,17 +63,14 @@ public class SceneSplitService {
                 while ((buffer = br.readLine()) != null) {
                     result.append(buffer).append("\r\n");
                 }
-                System.out.println(result);
                 responseCode = status.getStatusCode();
                 responBody = result.toString();
 
                 Object obj = JSONValue.parse(result.toString());
                 JSONObject JSONobj = (JSONObject) obj;
                 Object ac =  JSONobj.get("return_object");
-                JSONObject JSONobj2 = (JSONObject) ac;
                 Object ad = ((JSONObject) ac).get("file_id");
                 returnFileId = ad.toString();
-                System.out.println(returnFileId);
 
                 System.out.println("장면분할 API");
                 System.out.println("[responseCode] " + responseCode);
@@ -82,7 +78,6 @@ public class SceneSplitService {
 
 
                 System.out.println("[return File ID] : " + returnFileId);
-                System.out.println();
             } finally {
                 response.close();
             }
