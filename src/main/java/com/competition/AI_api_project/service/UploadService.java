@@ -14,7 +14,13 @@ import java.util.Calendar;
 
 @Service
 public class UploadService {
+    private FFmpeg ffmpeg;
+    private FFprobe ffprobe;
 
+    public UploadService() throws IOException {
+        ffmpeg = new FFmpeg("/usr/local/bin/ffmpeg");
+        ffprobe = new FFprobe("/usr/local/bin/ffprobe");
+    }
     public String getRandomDirName() {
         // file name 지정
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss_");
@@ -32,7 +38,7 @@ public class UploadService {
                     e.getStackTrace();
                 }
             }
-            f.transferTo(new File(path + "\\" + file));
+            f.transferTo(new File(path + "/" + file));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -52,12 +58,9 @@ public class UploadService {
         return;
     }
 
-    public int getFileSize(String path, String file) throws IOException {
-        FFmpeg ffmpeg = new FFmpeg("C:\\ffmpeg-3.4.1-win64-static\\ffmpeg-3.4.1-win64-static\\bin\\ffmpeg");
-        FFprobe ffprobe = new FFprobe("C:\\ffmpeg-3.4.1-win64-static\\ffmpeg-3.4.1-win64-static\\bin\\ffprobe");
-
+    public int getFileSize(String path, String file) {
         try {
-            FFmpegProbeResult probeResult = ffprobe.probe(path + "\\" + file);
+            FFmpegProbeResult probeResult = ffprobe.probe(path + "/" + file);
             FFmpegFormat format = probeResult.getFormat();
             return (int)format.duration;
         } catch (IOException e) {

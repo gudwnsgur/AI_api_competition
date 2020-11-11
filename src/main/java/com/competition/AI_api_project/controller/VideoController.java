@@ -36,7 +36,7 @@ public class VideoController {
     private String returnedFileID = "";
     private String accessKey = "My KEY";
     private String type = ".mp4";
-    private String filePath = System.getProperty("user.dir") + "\\files\\";
+    private String filePath = System.getProperty("user.dir") + "/files/";
     private String localFilePath = "";
     private String originalFileName = "";
     private double fileSize = 0;
@@ -47,7 +47,7 @@ public class VideoController {
     public String upload(@RequestParam("uploadfile") MultipartFile f) throws InterruptedException, IOException {
         // 시간 + random 값으로 이뤄진 file name 생성
         String dirName = uploadService.getRandomDirName(); // only name
-        localFilePath = filePath + "\\" + dirName;
+        localFilePath = filePath + "/" + dirName;
         String fileName = FilenameUtils.getBaseName(f.getOriginalFilename()) + ".mp4";
         originalFileName = fileName;
         System.out.println("[file Path]  " + localFilePath);
@@ -60,23 +60,23 @@ public class VideoController {
         System.out.println("[file size]   " + fileSize);
 
         // Dir 생성
-        uploadService.setNewDir(localFilePath +"\\splitVideo");
-        uploadService.setNewDir(localFilePath + "\\splitAudio");
-        uploadService.setNewDir(localFilePath +"\\mergedVideo");
+        uploadService.setNewDir(localFilePath +"/splitVideo");
+        uploadService.setNewDir(localFilePath + "/splitAudio");
+        uploadService.setNewDir(localFilePath +"/mergedVideo");
 
-        int videoCnt = videoSplitService.Splitter(localFilePath, localFilePath+"\\splitVideo", fileName, fileSize);
+        int videoCnt = videoSplitService.Splitter(localFilePath, localFilePath+"/splitVideo", fileName, fileSize);
         // 장면 분할 API 사용
         String totalFileID = "";
         System.out.println("[video cnt]   : " + videoCnt);
         for(int i=0; i<videoCnt; i++) {
-            returnedFileID = sceneSplitService.sceneSplit(accessKey, type, localFilePath + "\\splitVideo\\splitVideo_" + Integer.toString(i) + ".mp4");
+            returnedFileID = sceneSplitService.sceneSplit(accessKey, type, localFilePath + "/splitVideo/splitVideo_" + Integer.toString(i) + ".mp4");
             totalFileID += returnedFileID + "\n";
         }
 
         // file ID 를 fileID.txt 파일에 저장
         BufferedOutputStream bs = null;
         try {
-            bs = new BufferedOutputStream(new FileOutputStream(localFilePath + "\\fileID.txt"));
+            bs = new BufferedOutputStream(new FileOutputStream(localFilePath + "/fileID.txt"));
             bs.write(totalFileID.getBytes()); //Byte형으로만 넣을 수 있음
         } catch (Exception e) {
             e.getStackTrace();
@@ -93,7 +93,7 @@ public class VideoController {
 
         timeTable.add(0.0);
         try{
-            File file = new File(localFilePath + "\\fileID.txt");
+            File file = new File(localFilePath + "/fileID.txt");
             FileReader fileReader = new FileReader(file);
             BufferedReader bufReader = new BufferedReader(fileReader);
             String line = "";
@@ -123,17 +123,17 @@ public class VideoController {
 
         int x = timeTable.size()-1;
         ArrayList<Integer> xList = new ArrayList<Integer>();
-        xList = audioSplitterService.audioSplitter(localFilePath + "\\splitAudio", timeTable, timeTable.size()-1);
+        xList = audioSplitterService.audioSplitter(localFilePath + "/splitAudio", timeTable, timeTable.size()-1);
 
         String languageCode = "korean";
         String code = "\n---\n";
         BufferedOutputStream bs = null;
         try {
-            bs = new BufferedOutputStream(new FileOutputStream(localFilePath + "\\result.txt"));
+            bs = new BufferedOutputStream(new FileOutputStream(localFilePath + "/result.txt"));
             for(int i=0; i<x; i++) {
                 for(int j=0; j<xList.get(i); j++) {
                     bs.write((audioRecognizeService.audioRec(languageCode,
-                            localFilePath + "\\splitAudio",
+                            localFilePath + "/splitAudio",
                             "audio_" + i + "_" + j +".wav" )).getBytes());
                 }
                 bs.write(code.getBytes());

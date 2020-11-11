@@ -11,8 +11,7 @@ import java.io.File;
 @Slf4j
 @Controller
 public class FileUploadController {
-    static private String filePath = "C:\\AI_api_project\\AI_api_project\\src" +
-            "\\main\\resources\\static\\";
+    static private String filePath = System.getProperty("user.dir") + "/src/main/ljava/resources/templates";
 
     @PostMapping(value = "/fileUpload")
     public String upload(@RequestParam("file") MultipartFile files) {

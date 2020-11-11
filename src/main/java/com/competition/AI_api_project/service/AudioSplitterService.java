@@ -11,9 +11,14 @@ import java.util.ArrayList;
 
 @Service
 public class AudioSplitterService {
-    public ArrayList<Integer> audioSplitter(String path, ArrayList<Double> list, int fileCnt) throws IOException {
-        FFmpeg ffmpeg = new FFmpeg("C:\\ffmpeg-3.4.1-win64-static\\ffmpeg-3.4.1-win64-static\\bin\\ffmpeg");
-        FFprobe ffprobe = new FFprobe("C:\\ffmpeg-3.4.1-win64-static\\ffmpeg-3.4.1-win64-static\\bin\\ffprobe");
+    private FFmpeg ffmpeg;
+    private FFprobe ffprobe;
+
+    public AudioSplitterService() throws IOException {
+        ffmpeg = new FFmpeg("/usr/local/bin/ffmpeg");
+        ffprobe = new FFprobe("/usr/local/bin/ffprobe");
+    }
+    public ArrayList<Integer> audioSplitter(String path, ArrayList<Double> list, int fileCnt) {
 
         ArrayList<Integer> result = new ArrayList<>();
         for (int i = 0; i < fileCnt-1; i++) {
@@ -24,10 +29,10 @@ public class AudioSplitterService {
             for (double j = 0; j <= audioLength; j += 30.00) {
                 FFmpegBuilder builder = new FFmpegBuilder()
                         .overrideOutputFiles(true)
-                        .addInput(path + "\\audio_" + i + ".wav")
+                        .addInput(path + "/audio_" + i + ".wav")
                         .addExtraArgs("-ss", i + "")
                         .addExtraArgs("-t", 30.00 + "")
-                        .addOutput(path + "\\audio_" + i + "_" + cnt++ + ".wav")
+                        .addOutput(path + "/audio_" + i + "_" + cnt++ + ".wav")
                         .done();
                 FFmpegExecutor executor = new FFmpegExecutor(ffmpeg, ffprobe);
                 executor.createJob(builder).run();

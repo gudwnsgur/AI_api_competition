@@ -13,10 +13,15 @@ public class VoiceExtractionService {
     private static String inputPath = "C:\\AI_api_project\\AI_api_project\\src\\main\\resources\\static\\";
     private static String outputPath = "C:\\AI_api_project\\AI_api_project\\src\\main\\resources\\static\\";
 
-    public void voiceSplitter() throws IOException {
-        FFmpeg ffmpeg = new FFmpeg("C:\\ffmpeg-3.4.1-win64-static\\ffmpeg-3.4.1-win64-static\\bin\\ffmpeg");
-        FFprobe ffprobe = new FFprobe("C:\\ffmpeg-3.4.1-win64-static\\ffmpeg-3.4.1-win64-static\\bin\\ffprobe");
+    private FFmpeg ffmpeg;
+    private FFprobe ffprobe;
 
+    public VoiceExtractionService() throws IOException {
+        ffmpeg = new FFmpeg("/usr/local/bin/ffmpeg");
+        ffprobe = new FFprobe("/usr/local/bin/ffprobe");
+    }
+
+    public void voiceSplitter() {
         FFmpegBuilder builder = new FFmpegBuilder()
                 .overrideOutputFiles(true)
                 .addInput(inputPath + "2020-11-09_18-08-25_421.mp4")
@@ -28,10 +33,7 @@ public class VoiceExtractionService {
         executor.createJob(builder).run();
     }
 
-    public void mp4Tomp3(String path, int fileCnt) throws IOException {
-        FFmpeg ffmpeg = new FFmpeg("C:\\ffmpeg-3.4.1-win64-static\\ffmpeg-3.4.1-win64-static\\bin\\ffmpeg");
-        FFprobe ffprobe = new FFprobe("C:\\ffmpeg-3.4.1-win64-static\\ffmpeg-3.4.1-win64-static\\bin\\ffprobe");
-
+    public void mp4Tomp3(String path, int fileCnt) {
         int cnt = 0;
         for (int i= 0; i < fileCnt; i++) {
             String inputPath = path + "\\mergedVideo\\mergedVideo_" + cnt + ".mp4";
@@ -49,10 +51,7 @@ public class VoiceExtractionService {
             cnt++;
         }
     }
-    public void mp3ToWav(String path, int fileCnt) throws IOException {
-        FFmpeg ffmpeg = new FFmpeg("C:\\ffmpeg-3.4.1-win64-static\\ffmpeg-3.4.1-win64-static\\bin\\ffmpeg");
-        FFprobe ffprobe = new FFprobe("C:\\ffmpeg-3.4.1-win64-static\\ffmpeg-3.4.1-win64-static\\bin\\ffprobe");
-
+    public void mp3ToWav(String path, int fileCnt) {
         int cnt = 0;
         for (int i = 0; i < fileCnt; i++) {
             String inputPath = path + "\\splitAudio\\audio_" + cnt + ".mp3";

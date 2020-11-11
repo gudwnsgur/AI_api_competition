@@ -27,7 +27,7 @@ public class AudioRecognizeService {
         String accessKey = "MY KEY";
         String audioContents = null;
 
-        audioFilePath += "\\" + fileName;
+        audioFilePath += "/" + fileName;
         Gson gson = new Gson();
 
         Map<String, Object> request = new HashMap<>();
