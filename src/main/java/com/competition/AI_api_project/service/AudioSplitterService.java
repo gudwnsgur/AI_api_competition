@@ -16,7 +16,7 @@ public class AudioSplitterService {
         FFprobe ffprobe = new FFprobe("C:\\ffmpeg-3.4.1-win64-static\\ffmpeg-3.4.1-win64-static\\bin\\ffprobe");
 
         ArrayList<Integer> result = new ArrayList<>();
-        for (int i = 0; i < fileCnt-1; i++) {
+        for (int i = 0; i < fileCnt; i++) {
             int cnt = 0;
             double audioLength = 0;
 
@@ -24,16 +24,15 @@ public class AudioSplitterService {
             for (double j = 0; j <= audioLength; j += 30.00) {
                 FFmpegBuilder builder = new FFmpegBuilder()
                         .overrideOutputFiles(true)
-                        .addInput(path + "\\audio_" + i + ".wav")
-                        .addExtraArgs("-ss", i + "")
+                        .addInput(path + "/audio_" + i + ".wav")
+                        .addExtraArgs("-ss", j + "")
                         .addExtraArgs("-t", 30.00 + "")
-                        .addOutput(path + "\\audio_" + i + "_" + cnt++ + ".wav")
+                        .addOutput(path + "/audio_" + i + "_" + cnt++ + ".wav")
                         .done();
                 FFmpegExecutor executor = new FFmpegExecutor(ffmpeg, ffprobe);
                 executor.createJob(builder).run();
             }
             result.add(cnt);
-            System.out.println(result);
         }
         return result;
     }

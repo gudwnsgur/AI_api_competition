@@ -6,8 +6,11 @@ import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.competition.AI_api_project.service.*;
+import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.ParseException;
 import org.apache.commons.io.FilenameUtils;
@@ -34,7 +37,7 @@ public class VideoController {
     AudioSplitterService audioSplitterService;
 
     private String returnedFileID = "";
-    private String accessKey = "My KEY";
+    private String accessKey = "MY KEY";
     private String type = ".mp4";
     private String filePath = System.getProperty("user.dir") + "\\files\\";
     private String localFilePath = "";
@@ -50,6 +53,7 @@ public class VideoController {
         localFilePath = filePath + "\\" + dirName;
         String fileName = FilenameUtils.getBaseName(f.getOriginalFilename()) + ".mp4";
         originalFileName = fileName;
+
         System.out.println("[file Path]  " + localFilePath);
         System.out.println("[file Name]  " + fileName);
 
@@ -60,15 +64,15 @@ public class VideoController {
         System.out.println("[file size]   " + fileSize);
 
         // Dir 생성
-        uploadService.setNewDir(localFilePath +"\\splitVideo");
+        uploadService.setNewDir(localFilePath + "\\splitVideo");
         uploadService.setNewDir(localFilePath + "\\splitAudio");
-        uploadService.setNewDir(localFilePath +"\\mergedVideo");
+        uploadService.setNewDir(localFilePath + "\\mergedVideo");
 
-        int videoCnt = videoSplitService.Splitter(localFilePath, localFilePath+"\\splitVideo", fileName, fileSize);
+        int videoCnt = videoSplitService.Splitter(localFilePath, localFilePath + "\\splitVideo", fileName, fileSize);
         // 장면 분할 API 사용
         String totalFileID = "";
         System.out.println("[video cnt]   : " + videoCnt);
-        for(int i=0; i<videoCnt; i++) {
+        for (int i = 0; i < videoCnt; i++) {
             returnedFileID = sceneSplitService.sceneSplit(accessKey, type, localFilePath + "\\splitVideo\\splitVideo_" + Integer.toString(i) + ".mp4");
             totalFileID += returnedFileID + "\n";
         }
@@ -80,7 +84,7 @@ public class VideoController {
             bs.write(totalFileID.getBytes()); //Byte형으로만 넣을 수 있음
         } catch (Exception e) {
             e.getStackTrace();
-        }finally {
+        } finally {
             bs.close();
         }
         return "index";
@@ -89,8 +93,11 @@ public class VideoController {
     // 분석 결과 보기
     @PostMapping(value = "/sceneSplit", produces = "application/json; charset=utf8")
     public String sceneSplit() throws IOException, ParseException {
+
+
         ArrayList<Double> timeTable = new ArrayList<Double>();
 
+        // time table 작성
         timeTable.add(0.0);
         try{
             File file = new File(localFilePath + "\\fileID.txt");
@@ -106,44 +113,49 @@ public class VideoController {
                 time += 300;
             }
             bufReader.close();
-//            timeTable.add(fileSize);
-            timeTable.add(990.0);
+            timeTable.add(fileSize);
+
         } catch (IOException | ParseException e) {
             e.printStackTrace();
         }
         System.out.println(timeTable);
+        System.out.println(localFilePath);
+        System.out.println(originalFileName);
 
         // 동영상 장면 분할 결과와 같이 split
         videoSplitService.splitByArray(timeTable, localFilePath, originalFileName);
         // mp4 to mp3
-        voiceExtractionService.mp4Tomp3(localFilePath, timeTable.size()-1);
+        voiceExtractionService.mp4Tomp3(localFilePath, timeTable.size() - 1);
         // mp3 to wav
-        voiceExtractionService.mp3ToWav(localFilePath, timeTable.size()-1);
+        voiceExtractionService.mp3ToWav(localFilePath, timeTable.size() - 1);
 
 
-        int x = timeTable.size()-1;
+        // 30초 단위로 음성 split
+        int x = timeTable.size() - 1;
         ArrayList<Integer> xList = new ArrayList<Integer>();
-        xList = audioSplitterService.audioSplitter(localFilePath + "\\splitAudio", timeTable, timeTable.size()-1);
+        xList = audioSplitterService.audioSplitter(localFilePath + "\\splitAudio", timeTable, timeTable.size() - 1);
 
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("FILE_NAME", originalFileName);
+        JSONArray txt_array = new JSONArray();
         String languageCode = "korean";
-        String code = "\n---\n";
-        BufferedOutputStream bs = null;
-        try {
-            bs = new BufferedOutputStream(new FileOutputStream(localFilePath + "\\result.txt"));
-            for(int i=0; i<x; i++) {
-                for(int j=0; j<xList.get(i); j++) {
-                    bs.write((audioRecognizeService.audioRec(languageCode,
-                            localFilePath + "\\splitAudio",
-                            "audio_" + i + "_" + j +".wav" )).getBytes());
-                }
-                bs.write(code.getBytes());
+        for (int i = 0; i < x; i++) {
+            String str = "";
+            JSONObject data = new JSONObject();
+            for (int j = 0; j < xList.get(i); j++) {
+                String curResult = audioRecognizeService.audioRec(languageCode,
+                        localFilePath + "\\splitAudio",
+                        "audio_" + i + "_" + j + ".wav");
+                if(!curResult.equals("ASR_NOTOKEN")) str += curResult + "   ";
             }
-        }catch (Exception e) {
-            e.getStackTrace();
-        }finally {
-            bs.close();
+            data.put("NUM", i);
+            data.put("START_TIME", timeTable.get(i));
+            data.put("DUR_TIME", timeTable.get(i+1)-timeTable.get(i));
+            data.put("TEXT", str);
+            txt_array.add(data);
         }
-
+        jsonObject.put("result", txt_array);
+        System.out.println(jsonObject);
         return "index";
     }
 }

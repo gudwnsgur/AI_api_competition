@@ -60,28 +60,21 @@ public class AudioRecognizeService {
             wr.write(gson.toJson(request).getBytes("UTF-8"));
             wr.flush();
             wr.close();
-
-            responseCode = con.getResponseCode();
             InputStream is = con.getInputStream();
             byte[] buffer = new byte[is.available()];
             int byteRead = is.read(buffer);
             responBody = new String(buffer);
-
-            System.out.println("[responseCode] " + responseCode);
-            System.out.println("[responBody]");
-            System.out.println(responBody);
-
         } catch (MalformedURLException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-
         JSONParser jP = new JSONParser();
         JSONObject obj = ((JSONObject)jP.parse(responBody));
         JSONObject obj2 = ((JSONObject)obj.get("return_object"));
         Object text = (obj2.get("recognized"));
+        System.out.println(text.toString());
         return text.toString();
     }
 }

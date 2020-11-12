@@ -6,8 +6,8 @@ import org.springframework.web.bind.annotation.*;
 @Controller
 public class MainController {
     @GetMapping("/")
-    public void index() {
-        return;
+    public String index() {
+        return "index";
     }
 }
 

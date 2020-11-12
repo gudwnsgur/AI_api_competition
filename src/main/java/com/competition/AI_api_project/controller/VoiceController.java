@@ -12,7 +12,6 @@ public class VoiceController {
 
     @PostMapping(value = "/voiceRecognize")
     public String voiceRec() throws IOException {
-        voiceExtractionService.voiceSplitter();
         return "index";
     }
 }
