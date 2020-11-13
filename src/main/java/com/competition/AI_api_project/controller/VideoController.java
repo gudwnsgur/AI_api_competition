@@ -6,13 +6,17 @@ import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
+import com.competition.AI_api_project.dto.ResultDto;
 import com.competition.AI_api_project.service.*;
+import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.ParseException;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -34,13 +38,12 @@ public class VideoController {
     AudioSplitterService audioSplitterService;
 
     private String returnedFileID = "";
-    private String accessKey = "My KEY";
+    private String accessKey = "25601cd9-c413-4522-b3fb-e35de1ae040d";
     private String type = ".mp4";
     private String filePath = System.getProperty("user.dir") + "/files/";
-    private String localFilePath = "";
-    private String originalFileName = "";
+    private String localFilePath;
+    private String originalFileName;
     private double fileSize = 0;
-
 
     // 분석하기
     @PostMapping(value = "/upload", produces = "application/json; charset=utf8")
@@ -88,9 +91,8 @@ public class VideoController {
 
     // 분석 결과 보기
     @PostMapping(value = "/sceneSplit", produces = "application/json; charset=utf8")
-    public String sceneSplit() throws IOException, ParseException {
+    public String sceneSplit(Model model) throws IOException, ParseException {
         ArrayList<Double> timeTable = new ArrayList<Double>();
-
         timeTable.add(0.0);
         try{
             File file = new File(localFilePath + "/fileID.txt");
@@ -106,8 +108,7 @@ public class VideoController {
                 time += 300;
             }
             bufReader.close();
-//            timeTable.add(fileSize);
-            timeTable.add(990.0);
+            timeTable.add(fileSize);
         } catch (IOException | ParseException e) {
             e.printStackTrace();
         }
@@ -121,29 +122,33 @@ public class VideoController {
         voiceExtractionService.mp3ToWav(localFilePath, timeTable.size()-1);
 
 
-        int x = timeTable.size()-1;
+        int x = timeTable.size() - 1;
         ArrayList<Integer> xList = new ArrayList<Integer>();
-        xList = audioSplitterService.audioSplitter(localFilePath + "/splitAudio", timeTable, timeTable.size()-1);
+        xList = audioSplitterService.audioSplitter(localFilePath + "/splitAudio", timeTable, timeTable.size() - 1);
 
         String languageCode = "korean";
-        String code = "\n---\n";
-        BufferedOutputStream bs = null;
-        try {
-            bs = new BufferedOutputStream(new FileOutputStream(localFilePath + "/result.txt"));
-            for(int i=0; i<x; i++) {
-                for(int j=0; j<xList.get(i); j++) {
-                    bs.write((audioRecognizeService.audioRec(languageCode,
-                            localFilePath + "/splitAudio",
-                            "audio_" + i + "_" + j +".wav" )).getBytes());
-                }
-                bs.write(code.getBytes());
+        ArrayList<ResultDto> dtoList = new ArrayList<>();
+        for (int i = 0; i < x; i++) {
+            String str = "";
+            for (int j = 0; j < xList.get(i); j++) {
+                String curResult = audioRecognizeService.audioRec(languageCode,
+                        localFilePath + "/splitAudio",
+                        "audio_" + i + "_" + j + ".wav");
+                if(!curResult.equals("ASR_NOTOKEN")) str += curResult + "\n";
             }
-        }catch (Exception e) {
-            e.getStackTrace();
-        }finally {
-            bs.close();
+            ResultDto dto = new ResultDto();
+            dto.setNum(i + "");
+            dto.setStartTime(timeTable.get(i) + "");
+            dto.setDurTime((timeTable.get(i + 1) - timeTable.get(i)) + "");
+            dto.setText(str);
+            dtoList.add(dto);
         }
+        model.addAttribute("dList", dtoList);
+        return "index";
+    }
 
+    @GetMapping("/")
+    public String index() {
         return "index";
     }
 }

@@ -24,7 +24,7 @@ import org.springframework.stereotype.Service;
 public class AudioRecognizeService {
     public String audioRec(String languageCode, String audioFilePath, String fileName) throws ParseException {
         String openApiURL = "http://aiopen.etri.re.kr:8000/WiseASR/Recognition";
-        String accessKey = "MY KEY";
+        String accessKey = "25601cd9-c413-4522-b3fb-e35de1ae040d";
         String audioContents = null;
 
         audioFilePath += "/" + fileName;

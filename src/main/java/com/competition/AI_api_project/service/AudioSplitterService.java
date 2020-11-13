@@ -21,7 +21,7 @@ public class AudioSplitterService {
     public ArrayList<Integer> audioSplitter(String path, ArrayList<Double> list, int fileCnt) {
 
         ArrayList<Integer> result = new ArrayList<>();
-        for (int i = 0; i < fileCnt-1; i++) {
+        for (int i = 0; i < fileCnt; i++) {
             int cnt = 0;
             double audioLength = 0;
 
@@ -30,7 +30,7 @@ public class AudioSplitterService {
                 FFmpegBuilder builder = new FFmpegBuilder()
                         .overrideOutputFiles(true)
                         .addInput(path + "/audio_" + i + ".wav")
-                        .addExtraArgs("-ss", i + "")
+                        .addExtraArgs("-ss", j + "")
                         .addExtraArgs("-t", 30.00 + "")
                         .addOutput(path + "/audio_" + i + "_" + cnt++ + ".wav")
                         .done();
@@ -38,7 +38,6 @@ public class AudioSplitterService {
                 executor.createJob(builder).run();
             }
             result.add(cnt);
-            System.out.println(result);
         }
         return result;
     }
