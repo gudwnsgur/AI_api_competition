@@ -26,8 +26,9 @@ import com.google.gson.Gson;
 
 @Service
 public class SceneSplitService {
-    static private String openApiURL = "http://aiopen.etri.re.kr:8000/VideoParse";
-    static public String sceneSplit(String accessKey, String type, String file) {
+    String openApiURL = "http://aiopen.etri.re.kr:8000/VideoParse";
+    public String sceneSplit(String accessKey, String type, String file) {
+        String openApiURL = "http://aiopen.etri.re.kr:8000/VideoParse";
         Gson gson = new Gson();
 
         Map<String, Object> request = new HashMap<>();

@@ -29,9 +29,9 @@ import com.google.gson.Gson;
 
 @Service
 public class SceneSplitStatusCheckService {
-    static private String openApiURL = "http://aiopen.etri.re.kr:8000/VideoParse/status";
 
-    static public ArrayList<Double> sceneSplitStatusCheck(String fileID, String accessKey) throws ParseException {
+    public ArrayList<Double> sceneSplitStatusCheck(String fileID, String accessKey) throws ParseException {
+        String openApiURL = "http://aiopen.etri.re.kr:8000/VideoParse/status";
         Gson gson = new Gson();
 
         Map<String, Object> request = new HashMap<>();
