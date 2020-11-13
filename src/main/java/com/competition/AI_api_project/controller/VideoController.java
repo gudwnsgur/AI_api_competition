@@ -23,19 +23,13 @@ import org.springframework.web.multipart.MultipartFile;
 @Controller
 public class VideoController {
     @Autowired
-    SceneSplitService sceneSplitService;
-    @Autowired
-    SceneSplitStatusCheckService sceneSplitStatusCheckService;
-    @Autowired
-    VideoSplitService videoSplitService;
-    @Autowired
     UploadService uploadService;
+
     @Autowired
-    VoiceExtractionService voiceExtractionService;
+    AudioService audioService;
+
     @Autowired
-    AudioRecognizeService audioRecognizeService;
-    @Autowired
-    AudioSplitterService audioSplitterService;
+    VideoService videoService;
 
     private String returnedFileID = "";
     private String accessKey = "25601cd9-c413-4522-b3fb-e35de1ae040d";
@@ -67,12 +61,12 @@ public class VideoController {
         uploadService.setNewDir(localFilePath + "/splitAudio");
         uploadService.setNewDir(localFilePath +"/mergedVideo");
 
-        int videoCnt = videoSplitService.Splitter(localFilePath, localFilePath+"/splitVideo", fileName, fileSize);
+        int videoCnt = videoService.splitVideo(localFilePath, localFilePath+"/splitVideo", fileName, fileSize);
         // 장면 분할 API 사용
         String totalFileID = "";
         System.out.println("[video cnt]   : " + videoCnt);
         for(int i=0; i<videoCnt; i++) {
-            returnedFileID = sceneSplitService.sceneSplit(accessKey, type, localFilePath + "/splitVideo/splitVideo_" + Integer.toString(i) + ".mp4");
+            returnedFileID = videoService.splitSceneApi(accessKey, type, localFilePath + "/splitVideo/splitVideo_" + Integer.toString(i) + ".mp4");
             totalFileID += returnedFileID + "\n";
         }
 
@@ -101,7 +95,7 @@ public class VideoController {
             String line = "";
             double time = 0;
             while((line = bufReader.readLine()) != null) {
-                ArrayList<Double> cur = sceneSplitStatusCheckService.sceneSplitStatusCheck(line, accessKey);
+                ArrayList<Double> cur = videoService.splitSceneStatusApi(line, accessKey);
                 for(int i=1; i<cur.size(); i++) {
                     timeTable.add(cur.get(i) + time);
                 }
@@ -115,23 +109,23 @@ public class VideoController {
         System.out.println(timeTable);
 
         // 동영상 장면 분할 결과와 같이 split
-        videoSplitService.splitByArray(timeTable, localFilePath, originalFileName);
+        videoService.splitVideoByNewPoint(timeTable, localFilePath, originalFileName);
         // mp4 to mp3
-        voiceExtractionService.mp4Tomp3(localFilePath, timeTable.size()-1);
+        audioService.mp4Tomp3(localFilePath, timeTable.size()-1);
         // mp3 to wav
-        voiceExtractionService.mp3ToWav(localFilePath, timeTable.size()-1);
+        audioService.mp3ToWav(localFilePath, timeTable.size()-1);
 
 
         int x = timeTable.size() - 1;
         ArrayList<Integer> xList = new ArrayList<Integer>();
-        xList = audioSplitterService.audioSplitter(localFilePath + "/splitAudio", timeTable, timeTable.size() - 1);
+        xList = audioService.splitAudioTo30(localFilePath + "/splitAudio", timeTable, timeTable.size() - 1);
 
         String languageCode = "korean";
         ArrayList<ResultDto> dtoList = new ArrayList<>();
         for (int i = 0; i < x; i++) {
             String str = "";
             for (int j = 0; j < xList.get(i); j++) {
-                String curResult = audioRecognizeService.audioRec(languageCode,
+                String curResult = audioService.audioRecoqnizeApi(languageCode,
                         localFilePath + "/splitAudio",
                         "audio_" + i + "_" + j + ".wav");
                 if(!curResult.equals("ASR_NOTOKEN")) str += curResult + "\n";

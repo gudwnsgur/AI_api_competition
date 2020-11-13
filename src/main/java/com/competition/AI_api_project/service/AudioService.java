@@ -8,6 +8,7 @@ import net.bramp.ffmpeg.builder.FFmpegBuilder;
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
 import net.minidev.json.parser.ParseException;
+import org.springframework.stereotype.Service;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -23,6 +24,7 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
+@Service
 public class AudioService {
     private FFmpeg ffmpeg;
     private FFprobe ffprobe;
