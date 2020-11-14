@@ -88,7 +88,7 @@ public class VideoService {
     }
     //sceneSplitStatusCheck
 
-    @Synchronized
+
     public ArrayList<Double> splitSceneStatusApi(String fileID, String accessKey) throws ParseException {
         String openApiURL = "http://aiopen.etri.re.kr:8000/VideoParse/status";
         Gson gson = new Gson();
@@ -154,7 +154,6 @@ public class VideoService {
     }
     //sceneSplit
 
-    @Async
     public CompletableFuture<String> splitSceneApi(String accessKey, String type, String file) {
         String openApiURL = "http://aiopen.etri.re.kr:8000/VideoParse";
         Gson gson = new Gson();
