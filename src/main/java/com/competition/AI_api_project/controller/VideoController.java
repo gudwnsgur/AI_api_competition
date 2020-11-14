@@ -7,6 +7,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import com.competition.AI_api_project.dto.ResultDto;
 import com.competition.AI_api_project.service.*;
@@ -32,19 +33,22 @@ public class VideoController {
     VideoService videoService;
 
     private String returnedFileID = "";
-    private String accessKey = "25601cd9-c413-4522-b3fb-e35de1ae040d";
+    private String accessKey = "4c4ef167-bcc0-4824-9dd5-0f0c6126ac97";
     private String type = ".mp4";
     private String filePath = System.getProperty("user.dir") + "/files/";
     private String localFilePath;
     private String originalFileName;
     private double fileSize = 0;
+    private String accessKey1 = "4c4ef167-bcc0-4824-9dd5-0f0c6126ac97";
+    private String accessKey2="25601cd9-c413-4522-b3fb-e35de1ae040d";
+    private ArrayList<String> returnedIdList = new ArrayList<>();
 
     // 분석하기
     @PostMapping(value = "/upload", produces = "application/json; charset=utf8")
-    public String upload(@RequestParam("uploadfile") MultipartFile f) throws InterruptedException, IOException {
+    public String upload(@RequestParam("uploadfile") MultipartFile f, Model model) throws InterruptedException, IOException, ParseException {
         // 시간 + random 값으로 이뤄진 file name 생성
         String dirName = uploadService.getRandomDirName(); // only name
-        localFilePath = filePath + "/" + dirName;
+        localFilePath = filePath  + dirName;
         String fileName = FilenameUtils.getBaseName(f.getOriginalFilename()) + ".mp4";
         originalFileName = fileName;
         System.out.println("[file Path]  " + localFilePath);
@@ -63,54 +67,32 @@ public class VideoController {
 
         int videoCnt = videoService.splitVideo(localFilePath, localFilePath+"/splitVideo", fileName, fileSize);
         // 장면 분할 API 사용
-        String totalFileID = "";
+        //String totalFileID = "";
         System.out.println("[video cnt]   : " + videoCnt);
-        for(int i=0; i<videoCnt; i++) {
-            returnedFileID = videoService.splitSceneApi(accessKey, type, localFilePath + "/splitVideo/splitVideo_" + Integer.toString(i) + ".mp4");
-            totalFileID += returnedFileID + "\n";
-        }
 
-        // file ID 를 fileID.txt 파일에 저장
-        BufferedOutputStream bs = null;
-        try {
-            bs = new BufferedOutputStream(new FileOutputStream(localFilePath + "/fileID.txt"));
-            bs.write(totalFileID.getBytes()); //Byte형으로만 넣을 수 있음
-        } catch (Exception e) {
-            e.getStackTrace();
-        }finally {
-            bs.close();
+        int vCnt = 0;
+        while (vCnt < videoCnt) {
+            CompletableFuture<String> str1 = videoService.splitSceneApi(accessKey1, type, localFilePath + "/splitVideo/splitVideo_" + (vCnt) + ".mp4");
+            CompletableFuture<String> str2 = videoService.splitSceneApi(accessKey1, type, localFilePath + "/splitVideo/splitVideo_" + (vCnt + 1) + ".mp4");
+            returnedIdList.add(str1.toString());
+            returnedIdList.add(str2.toString());
+            vCnt+=2;
         }
-        return "index";
-    }
-
-    // 분석 결과 보기
-    @PostMapping(value = "/sceneSplit", produces = "application/json; charset=utf8")
-    public String sceneSplit(Model model) throws IOException, ParseException {
         ArrayList<Double> timeTable = new ArrayList<Double>();
-        timeTable.add(0.0);
-        try{
-            File file = new File(localFilePath + "/fileID.txt");
-            FileReader fileReader = new FileReader(file);
-            BufferedReader bufReader = new BufferedReader(fileReader);
-            String line = "";
-            double time = 0;
-            while((line = bufReader.readLine()) != null) {
-                ArrayList<Double> cur = videoService.splitSceneStatusApi(line, accessKey);
-                for(int i=1; i<cur.size(); i++) {
-                    timeTable.add(cur.get(i) + time);
-                }
-                time += 300;
-            }
-            bufReader.close();
-            timeTable.add(fileSize);
-        } catch (IOException | ParseException e) {
-            e.printStackTrace();
-        }
-        System.out.println(timeTable);
+        double time = 0;
 
+        for(int i = 0; i < returnedIdList.size(); i++) {
+            ArrayList<Double> cur = videoService.splitSceneStatusApi(returnedIdList.get(i), accessKey);
+            for (int j = 1; i < cur.size(); i++) {
+                timeTable.add(cur.get(i) + time);
+            }
+            time += 300;
+        }
+        timeTable.add(fileSize);
+        //System.out.println(timeTable);
         // 동영상 장면 분할 결과와 같이 split
         videoService.splitVideoByNewPoint(timeTable, localFilePath, originalFileName);
-        // mp4 to mp3
+        //
         audioService.mp4Tomp3(localFilePath, timeTable.size()-1);
         // mp3 to wav
         audioService.mp3ToWav(localFilePath, timeTable.size()-1);
@@ -128,7 +110,8 @@ public class VideoController {
                 String curResult = audioService.audioRecoqnizeApi(languageCode,
                         localFilePath + "/splitAudio",
                         "audio_" + i + "_" + j + ".wav");
-                if(!curResult.equals("ASR_NOTOKEN")) str += curResult + "\n";
+                if(!curResult.equals("ASR_NOTOKEN") || !curResult.equals("다 ")) str += curResult + "\n";
+
             }
             ResultDto dto = new ResultDto();
             dto.setNum(i + "");
